@@ -1,16 +1,18 @@
 import express from "express";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { route } from "./http/routes/route";
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/api", (req, res) => {
+const baseUrl = '/api/v1/';
+
+app.use(baseUrl + "health", (_, res) => {
   res.status(200).json({
-    msg: "Server is up and running",
+    msg: "Health check successful",
   });
 });
+
+app.use(baseUrl, route);
 
 export default app;

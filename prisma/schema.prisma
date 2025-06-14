@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  forms    Form[]
+
+  createdAt DateTime @default(now())
+}
+
+model Company {
+  id    String  @id @default(uuid())
+  name  String
+  cnpj  String? @unique
+  forms Form[]
+
+  createdAt DateTime @default(now())
+}
+
+model Form {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  token       String   @unique @default(uuid())
+  createdAt   DateTime @default(now())
+
+  userId    String
+  companyId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  fields    FormField[]
+  responses FormResponse[]
+}
+
+model FormField {
+  id         String    @id @default(uuid())
+  formId     String
+  label      String
+  type       FieldType
+  isRequired Boolean   @default(false)
+  options    Json?
+  order      Int       @default(0)
+
+  form    Form                 @relation(fields: [formId], references: [id])
+  answers FormResponseAnswer[]
+}
+
+model FormResponse {
+  id          String   @id @default(uuid())
+  formId      String
+  clientId    String?
+  submittedAt DateTime @default(now())
+
+  form    Form                 @relation(fields: [formId], references: [id])
+  answers FormResponseAnswer[]
+}
+
+model FormResponseAnswer {
+  id         String  @id @default(uuid())
+  responseId String
+  fieldId    String
+  value      String?
+
+  response FormResponse @relation(fields: [responseId], references: [id])
+  field    FormField    @relation(fields: [fieldId], references: [id])
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  SELECT
+  CHECKBOX
+  RADIO
+  DATE
+  EMAIL
+}
